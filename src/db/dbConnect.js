@@ -8,7 +8,7 @@ export default async function dbConnect() {
         console.log(`MongoDB connected to ${(connection.connections[0]?.name).toUpperCase()} database with host: ${connection.connections[0]?.host}`)
         
     } catch (err) {
-        console.log("Failed to connect to the database: ", err )
+        console.log("Failed to connect to the database: ", err)
         process.exit(1)
     }
 }
