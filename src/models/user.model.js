@@ -1,13 +1,14 @@
 import { Schema, model } from "mongoose";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
+import userRequirements from "../utils/SchemaUtils/user";
 
 const userSchema = new Schema({
     username: {
         type: String,
         required: [true, "Username is required"],
-        minlength: [4, "Username should be atleast 4 characters"],
-        maxlength: [20, "Username should be no more than 20 characters"],
+        minlength: [userRequirements.username.min, `Username should be atleast ${userRequirements.username.min} characters`],
+        maxlength: [userRequirements.username.max, `Username should be no more than ${userRequirements.username.max} characters`],
         unique: true,
         trim: true,
         lowercase: true,
@@ -16,23 +17,23 @@ const userSchema = new Schema({
         type: String,
         required: [true, "Email is required"],
         unique: true,
-        lowercase: true,
+        lowercase: userRequirements.email.lowercase,
         match: [/^\S+@\S+\.\S+$/, "Please provide a valid email"]
     },
     fullName: {
         type: String,
         required: [true, "Full name is required"],
-        minlength: [2, "Full name should be atleast 2 characters"],
-        maxlength: [100, "Full name should be no more than 100 characters"],
+        minlength: [userRequirements.fullName.min, `Full name should be atleast ${userRequirements.fullName.min} characters`],
+        maxlength: [userRequirements.fullName.max, `Full name should be no more than ${userRequirements.fullName.max} characters`],
         trim: true,
     },
     avatar: {
         type: String, //cloudinary url
-        default: "",
+        default: userRequirements.avatar.default,
     },
     coverImage: {
         type: String, //cloudinary url
-        default: "",
+        default: userRequirements.coverImage.default,
     },
     password: {
         type: String,

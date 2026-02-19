@@ -4,16 +4,16 @@ const tweetReplySchema = new Schema({
     owner: {
         type: Schema.Types.ObjectId,
         ref: "User",
-        required: true,
+        required: [true, "User ref is required"],
     },
     tweet: {
         type: Schema.Types.ObjectId,
         ref: "Tweet",
-        required: true,
+        required: [true, "Tweet ref is required"],
     },
     content: {
         type: String,
-        required: true,
+        required: [true, "Tweet reply content is required"],
         minlength: [1, "Tweet reply should be atleast 1 character."],
         maxlength: [2000, "Tweet reply should be no more than 2000 characters."],
         trim: true,

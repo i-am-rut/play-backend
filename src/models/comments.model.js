@@ -3,7 +3,7 @@ import { Schema, model } from "mongoose";
 const commentSchema = new Schema({
     content: {
         type: String,
-        required: true,
+        required: [true, "Comment content is required"],
         minlength: [1, "Comment should be atleast 1 character."],
         maxlength: [2000, "Comment should be no more than 2000 characters."],
         trim: true,

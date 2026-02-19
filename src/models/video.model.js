@@ -12,7 +12,7 @@ const videoSchema = new Schema({
     owner: {
         type: Schema.Types.ObjectId,
         ref: "User",
-        required: true,
+        required: [true, "User ref is required"],
     },
     title: {
         type: String,
@@ -40,7 +40,7 @@ const videoSchema = new Schema({
     },
     isPublished: {
         type: Boolean,
-        default: false
+        default: true
     },
     voteCount: {
         type: Number,
