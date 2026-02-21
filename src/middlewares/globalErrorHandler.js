@@ -1,7 +1,7 @@
 import { ZodError } from "zod"
 import mongoose from "mongoose"
 import multer from "multer"
-import { ApiError } from "../utils/ApiUtils/ApiError.js"
+import ApiError from "../utils/ApiUtils/ApiError.js"
 
 const globalErrorHandler = (err, req, res, next) => {
     // If response already sent, delegate to Express default handler
@@ -22,12 +22,18 @@ const globalErrorHandler = (err, req, res, next) => {
 
     // Zod Validation Error
     else if (err instanceof ZodError) {
+        const errors = Object.values(JSON.parse(err.message).map(e => ({
+            field: e.path[1],
+            message: e.message
+        })).reduce((acc, { field, message }) => ({
+            ...acc,
+            [field]: acc[field]
+                ? { field, message: acc[field].message + ", " + message }
+                : { field, message }
+        }), {}))
         statusCode = 400
         message = "Validation failed"
-        data = err.errors.map(e => ({
-            field: e.path.join("."),
-            message: e.message
-        }))
+        data = errors
     }
 
     // Mongoose Validation Error
@@ -60,7 +66,7 @@ const globalErrorHandler = (err, req, res, next) => {
     else if (err instanceof multer.MulterError) {
         statusCode = 400
         message = err.message
-        errors = null
+        data = null
     }
 
     // Log error in development

@@ -2,7 +2,7 @@ import express from 'express';
 import dotenv from "dotenv"
 import cookieParser from 'cookie-parser';
 import cors from "cors"
-import { DEV_ORIGIN } from './constants.js';
+import { API_BASE_VERSION, DEV_ORIGIN } from './constants.js';
 import globalErrorHandler from './middlewares/globalErrorHandler.js';
 
 export const app = express();
@@ -22,7 +22,9 @@ app.use(cookieParser())
 
 
 // Route handlers
+import userRouter from "./routes/user.routes.js"
 
+app.use(`${API_BASE_VERSION}/user`, userRouter)
 
 
 

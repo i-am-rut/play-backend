@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
-import userRequirements from "../utils/SchemaUtils/user";
+import userRequirements from "../utils/SchemaUtils/user/index.js";
 
 const userSchema = new Schema({
     username: {
@@ -50,6 +50,14 @@ userSchema.pre("save", async function (next) {
     next()
 })
 
+userSchema.pre("findOneAndUpdate", async function (next) {
+    const update = this.getUpdate()
+    if (!update.password) return next()
+    const hashed = await bcrypt.hash(update.password, 10)
+    this.setUpdate({ ...update, password: hashed })
+    next()
+})
+
 userSchema.methods.isPasswordValid = async function (password) {
     return await bcrypt.compare(password, this.password)
 }
@@ -80,8 +88,6 @@ userSchema.methods.toJSON = function () {
     return userObject;
 }
 
-userSchema.index({ email: 1 });
-userSchema.index({ username: 1 });
 
 
 export const User = model("User", userSchema)

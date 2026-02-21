@@ -1,5 +1,5 @@
 import { z } from "zod"
-import userRequirements from "../../utils/SchemaUtils/user"
+import userRequirements from "../../utils/SchemaUtils/user/index.js"
 
 const registerSchema = z.object({
     body: z.object({
@@ -26,7 +26,7 @@ const registerSchema = z.object({
         password: z
             .string()
             .regex(/[A-Z]/, "Must contain uppercase letter")
-            .regex(/[a-z]/, "Must contain lowercaFse letter")
+            .regex(/[a-z]/, "Must contain lowercase letter")
             .regex(/[0-9]/, "Must contain number")
             .regex(/[^A-Za-z0-9]/, "Must contain special character")
             .min(8, "Must be at least 8 characters")

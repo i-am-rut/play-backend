@@ -7,9 +7,10 @@ const validate = (schema) => {
                 params: req.params
             })
 
-            req.body = validatedData.body,
-            req.query = validatedData.query,
-            req.params = validatedData.params
+            // req.validated = validatedData
+            req.body = validatedData.body
+            Object.assign(req.query, validatedData.query)
+            Object.assign(req.params, validatedData.params)
 
             next()
 
