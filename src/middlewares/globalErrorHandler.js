@@ -2,6 +2,7 @@ import { ZodError } from "zod"
 import mongoose from "mongoose"
 import multer from "multer"
 import ApiError from "../utils/ApiUtils/ApiError.js"
+import { COOKIE_OPTIONS } from "../constants.js"
 
 const globalErrorHandler = (err, req, res, next) => {
     // If response already sent, delegate to Express default handler
@@ -87,6 +88,15 @@ const globalErrorHandler = (err, req, res, next) => {
                 ? "Invalid refresh token"
                 : "Invalid access token"
         data = {}
+    }
+
+    if (
+        (err.tokenType === TOKEN_TYPES.REFRESH &&
+        (err.name === "TokenExpiredError" ||
+        err.name === "JsonWebTokenError")) || err.code === "INVALID_REFRESH_TOKEN"
+    ) {
+        res.clearCookie("accessToken", COOKIE_OPTIONS)
+        res.clearCookie("refreshToken", COOKIE_OPTIONS)
     }
 
 

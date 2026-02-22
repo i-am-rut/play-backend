@@ -1,3 +1,5 @@
+import bcrypt from "bcrypt"
+
 import { COOKIE_OPTIONS, TOKEN_TYPES } from "../constants.js"
 import { User } from "../models/user.model.js"
 import ApiError from "../utils/ApiUtils/ApiError.js"
@@ -8,13 +10,14 @@ const generateAccessAndRefreshTokens = async (userId) => {
 
     const user = await User.findById(userId)
     const accessToken = user.generateAccessToken()
-    const refreshToken = user.generateRefreshToken()
+    const refreshTokenPlain = user.generateRefreshToken()
 
-    user.refreshToken = refreshToken
+    const refreshTokenHashed = await bcrypt.hash(refreshTokenPlain, 10)
+
+    user.refreshToken = refreshTokenHashed
     await user.save({ validateBeforeSave: false })
 
-    return { accessToken, refreshToken }
-
+    return { accessToken, refreshToken: refreshTokenPlain }
 }
 
 const registerUser = async (req, res) => {
@@ -124,6 +127,46 @@ const getCurrentUser = (req, res) => {
     return res.status(200).json(new ApiResponse(200, "User fetched successfully", req.user))
 }
 
+const refreshAccessToken = async (req, res, next) => {
+    try {
+        const token = req.cookies.refreshToken
+
+        if (!token) {
+            throw new ApiError(401, "Invalid refresh token", {}, "INVALID_REFRESH_TOKEN")
+        }
+
+        const decoded = jwt.verify(token, process.env.REFRESH_SECRET)
+        const user = await User.findById(decoded._id)
+        if(!user) {
+            throw new ApiError(401, "Invalid refresh token", {}, "INVALID_REFRESH_TOKEN")
+            
+        }
+
+        if (!user.refreshToken) {
+            throw new ApiError(401, "Invalid refresh token", {}, "INVALID_REFRESH_TOKEN")
+        }
+
+        const isValid = await bcrypt.compare(token, user.refreshToken)
+        if(!isValid) {
+            throw new ApiError(401, "Invalid refresh token", {}, "INVALID_REFRESH_TOKEN")
+        }
+
+        const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(decoded._id)
+        return res
+            .status(200)
+            .cookie("accessToken", accessToken, COOKIE_OPTIONS)
+            .cookie("refreshToken", refreshToken, COOKIE_OPTIONS)
+            .json(new ApiResponse(200, "Access token refreshed"))
+
+    } catch (err) {
+        if (err.name === "TokenExpiredError" || err.name === "JsonWebTokenError") {
+            err.tokenType = TOKEN_TYPES.REFRESH
+        }
+        next(err)
+    }
+}
+
+
 // Use whenever there is need to delete or replace the image or video resource (needs resource url)
 // const deleteResource = async(req, res) => {
 //     try {
@@ -135,32 +178,12 @@ const getCurrentUser = (req, res) => {
 //     }
 // }
 
-//  const refreshAccessToken = async(req, res, next) => {
-//   try {
-//     const token = req.cookies.refreshToken
-
-//     if (!token) {
-//       const error = new Error("No refresh token provided")
-//       error.statusCode = 401
-//       throw error
-//     }
-
-//     const decoded = jwt.verify(token, process.env.REFRESH_SECRET)
-//     if(!decoded || !decoded?._id) throw new ApiError(401, "Invalid refresh token")
-//     const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(decoded._id)
-
-//     //ToDo: issue new access token...
-//     return res.status(200).cookie("accessToken", accessToken, COOKIE_OPTIONS).cookie("refreshToken", refreshToken, COOKIE_OPTIONS).json(new ApiResponse(200, "Access token refreshed"))
-//   } catch (err) {
-//     err.tokenType = TOKEN_TYPES.REFRESH
-//     next(err)
-//   }
-// }
 
 
 export {
     registerUser,
     signInUser,
     logout,
-    getCurrentUser
+    getCurrentUser,
+    refreshAccessToken
 }
