@@ -52,7 +52,6 @@ export const deleteCloudinaryResource = async (imageUrl) => {
       api_secret: process.env.CLOUDINARY_API_SECRET
     })
     const publicId = urlToPublicId(imageUrl)
-    console.log(publicId)
     const response = await cloudinary.uploader.destroy(publicId, (err, res) => {
       if (err) {
         console.log(err)

@@ -3,6 +3,7 @@ import dotenv from "dotenv"
 import cookieParser from 'cookie-parser';
 import cors from "cors"
 import { API_BASE_VERSION, DEV_ORIGIN } from './constants.js';
+import cleanupUploadedFiles from './middlewares/cleanUpUploadedFiles.js';
 import globalErrorHandler from './middlewares/globalErrorHandler.js';
 
 export const app = express();
@@ -27,6 +28,7 @@ import userRouter from "./routes/user.routes.js"
 app.use(`${API_BASE_VERSION}/user`, userRouter)
 
 
-
+// Uploaded files cleanup middleware in cases of errors
+app.use(cleanupUploadedFiles)
 // Global error handler middleware
 app.use(globalErrorHandler)

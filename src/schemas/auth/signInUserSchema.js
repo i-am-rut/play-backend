@@ -1,25 +1,31 @@
 import { z } from "zod"
+import emailSchema from "../common/email.schema.js"
+import usernameSchema from "../common/username.schema.js"
+import passwordSchema from "../common/password.schema.js"
 
 const signInSchema = z.object({
     body: z.object({
-        email: z
+        identifier: z
             .string()
-            .email("Invalid email format")
-            .toLowerCase()
-            .trim(),
+            .trim()
+            .min(1, "Email or username is required")
+            .superRefine((value, ctx) => {
+                const isEmail = emailSchema.safeParse(value).success
+                const isUsername = usernameSchema.safeParse(value).success
 
-        password: z
-            .string()
-            .regex(/[A-Z]/, "Must contain uppercase letter")
-            .regex(/[a-z]/, "Must contain lowercase letter")
-            .regex(/[0-9]/, "Must contain number")
-            .regex(/[^A-Za-z0-9]/, "Must contain special character")
-            .min(8, "Must be at least 8 characters")
-            .max(32, "Must be no more than 32 characters")
-    }).strict(), // req data will only have body so this is strict
-    query: z.object({}).optional(), //these will be empty objects for register user so they are optional 
+                if (!isEmail && !isUsername) {
+                    ctx.addIssue({
+                        message: "Must be a valid email or username",
+                    })
+                }
+            }),
+
+        password: passwordSchema
+    }).strict(), 
+
+    query: z.object({}).optional(), 
     params: z.object({}).optional()
-}).strict() // keeping the whole thing strict is better in production so nothing slips out unvalidated
+}).strict() 
 
 export default signInSchema
 

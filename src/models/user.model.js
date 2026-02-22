@@ -37,6 +37,8 @@ const userSchema = new Schema({
     },
     password: {
         type: String,
+        minlength: [userRequirements.password.min, `Password should be atleast ${userRequirements.password.min} characters`],
+        maxlength: [userRequirements.password.max, `Password should be no more than ${userRequirements.password.max} characters`],
         required: [true, "Password is required"],
     },
     refreshToken: {
@@ -58,7 +60,7 @@ userSchema.pre("findOneAndUpdate", async function (next) {
     next()
 })
 
-userSchema.methods.isPasswordValid = async function (password) {
+userSchema.methods.isPasswordCorrect = async function (password) {
     return await bcrypt.compare(password, this.password)
 }
 
@@ -82,10 +84,11 @@ userSchema.methods.generateRefreshToken = function () {
 }
 
 userSchema.methods.toJSON = function () {
-    const userObject = this.toObject();
-    delete userObject.password;
-    delete userObject.refreshToken;
-    return userObject;
+    const userObject = this.toObject()
+    delete userObject.password
+    delete userObject.refreshToken
+    delete userObject.__v
+    return userObject
 }
 
 

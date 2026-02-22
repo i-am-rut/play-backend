@@ -11,13 +11,13 @@ const globalErrorHandler = (err, req, res, next) => {
 
     let statusCode = 500
     let message = "Internal Server Error"
-    let data = null
+    let data = {}
 
     // Custom ApiError
     if (err instanceof ApiError) {
         statusCode = err.statusCode || 500
         message = err.message
-        data = err.errors || null
+        data = err.data || {}
     }
 
     // Zod Validation Error
@@ -49,7 +49,8 @@ const globalErrorHandler = (err, req, res, next) => {
     // Mongoose CastError (invalid ObjectId)
     else if (err instanceof mongoose.Error.CastError) {
         statusCode = 400
-        message = `Invalid ${err.path}: ${err.value}`
+        message = `Invalid ${err.path}: ${err.value}`,
+        data= {}
     }
 
     // Duplicate Key Error (Mongo)
@@ -66,8 +67,28 @@ const globalErrorHandler = (err, req, res, next) => {
     else if (err instanceof multer.MulterError) {
         statusCode = 400
         message = err.message
-        data = null
+        data = {}
     }
+
+    // JWT errors
+    else if (err.name === "TokenExpiredError") {
+        statusCode = 401
+        message =
+            err.tokenType === "refresh"
+                ? "Refresh token expired"
+                : "Access token expired"
+        data = {}
+    }
+
+    else if (err.name === "JsonWebTokenError") {
+        statusCode = 401
+        message =
+            err.tokenType === "refresh"
+                ? "Invalid refresh token"
+                : "Invalid access token"
+        data = {}
+    }
+
 
     // Log error in development
     if (process.env.NODE_ENV === "development") {

@@ -16,7 +16,10 @@ const userRequirements = {
     coverImage: {
         default: "",
     },
-    password: {},
+    password: {
+        min: 8,
+        max: 32,
+    },
     refreshToken: {}
 }
 
