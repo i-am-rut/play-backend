@@ -2,7 +2,7 @@ import { ZodError } from "zod"
 import mongoose from "mongoose"
 import multer from "multer"
 import ApiError from "../utils/ApiUtils/ApiError.js"
-import { COOKIE_OPTIONS } from "../constants.js"
+import { COOKIE_OPTIONS, TOKEN_TYPES } from "../constants.js"
 
 const globalErrorHandler = (err, req, res, next) => {
     // If response already sent, delegate to Express default handler

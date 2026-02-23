@@ -5,6 +5,7 @@ import cors from "cors"
 import { API_BASE_VERSION, DEV_ORIGIN } from './constants.js';
 import cleanupUploadedFiles from './middlewares/cleanUpUploadedFiles.js';
 import globalErrorHandler from './middlewares/globalErrorHandler.js';
+// import globalLimiter from './utils/rateLimitUtils/globalRateLimit.js';
 
 export const app = express();
 
@@ -16,6 +17,7 @@ app.use(cors({
     origin: [DEV_ORIGIN],
     credentials: true,
 }))
+// app.use(globalLimiter)
 app.use(express.json({ limit: '16kb' }))
 app.use(express.urlencoded({ limit: "16kb", extended: true }))
 app.use(express.static("public"))

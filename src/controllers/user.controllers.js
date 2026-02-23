@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken"
 
 import { COOKIE_OPTIONS, TOKEN_TYPES } from "../constants.js"
 import { User } from "../models/user.model.js"
@@ -135,11 +136,11 @@ const refreshAccessToken = async (req, res, next) => {
             throw new ApiError(401, "Invalid refresh token", {}, "INVALID_REFRESH_TOKEN")
         }
 
-        const decoded = jwt.verify(token, process.env.REFRESH_SECRET)
+        const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET)
         const user = await User.findById(decoded._id)
-        if(!user) {
+        if (!user) {
             throw new ApiError(401, "Invalid refresh token", {}, "INVALID_REFRESH_TOKEN")
-            
+
         }
 
         if (!user.refreshToken) {
@@ -147,7 +148,7 @@ const refreshAccessToken = async (req, res, next) => {
         }
 
         const isValid = await bcrypt.compare(token, user.refreshToken)
-        if(!isValid) {
+        if (!isValid) {
             throw new ApiError(401, "Invalid refresh token", {}, "INVALID_REFRESH_TOKEN")
         }
 
@@ -166,6 +167,36 @@ const refreshAccessToken = async (req, res, next) => {
     }
 }
 
+const changeCurrentPassword = async (req, res) => {
+    const { password, newPassword } = req.body
+    const { _id } = req.user
+
+    if (password === newPassword) {
+        throw new ApiError(400, "New password must be different from current password")
+    }
+
+    const userInDB = await User.findById(_id)
+
+    if (!userInDB) {
+        await bcrypt.compare(password, process.env.SOME_RANDOM_HASH)
+        throw new ApiError(401, "Unauthorized request")
+    }
+
+    const isValid = await userInDB.isPasswordCorrect(password)
+
+    if (!isValid) {
+        throw new ApiError(400, "Invalid credentials")
+    }
+
+    userInDB.password = newPassword
+    await userInDB.save()
+
+    return res.status(200).json(new ApiResponse(200, "Password changed successfully", {
+        _id: userInDB._id,
+        email: userInDB.email,
+        username: userInDB.username
+    }))
+}
 
 // Use whenever there is need to delete or replace the image or video resource (needs resource url)
 // const deleteResource = async(req, res) => {
@@ -179,11 +210,17 @@ const refreshAccessToken = async (req, res, next) => {
 // }
 
 
+// updateAccountDetails
+// updateUserAvatar
+// updateUserCoverImage
+// forgotPassword
+
 
 export {
     registerUser,
     signInUser,
     logout,
     getCurrentUser,
-    refreshAccessToken
+    refreshAccessToken,
+    changeCurrentPassword
 }
