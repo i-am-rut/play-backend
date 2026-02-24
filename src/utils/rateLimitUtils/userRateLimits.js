@@ -29,3 +29,8 @@ export const getCurrentUserLimiter = createRateLimiter({
 export const logoutLimiter = createRateLimiter({
     max: 30
 })
+
+export const updateUserDetailsLimiter = createRateLimiter({
+    max: 10,
+    message: "Too many account updation requests"
+})

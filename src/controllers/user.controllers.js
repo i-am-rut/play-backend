@@ -198,6 +198,47 @@ const changeCurrentPassword = async (req, res) => {
     }))
 }
 
+const updateUserDetails = async (req, res) => {
+    const { _id } = req.user
+    if (!_id) {
+        throw new ApiError(401, "Unauthorized request")
+    }
+    const { username, fullName } = req.body
+
+    if (!username && !fullName) {
+        throw new ApiError(400, "Enter at least one field to update.")
+    }
+    const updateFields = {}
+
+    if (username) {
+        const existingUser = await User.findOne({ username, _id: { $ne: _id } })
+        if (existingUser) {
+            throw new ApiError(400, "Username already exists. Enter a different username.", {}, "USERNAME")
+        }
+        updateFields.username = username
+    }
+
+    if (fullName) {
+        updateFields.fullName = fullName
+    }
+
+    const user = await User.findByIdAndUpdate(_id, {
+        $set: updateFields
+    }, {
+        new: true,
+        runValidators: true,
+        context: "query"
+    })
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    return res.status(200).json(new ApiResponse(200, "User updated successfully", user))
+
+}
+
+
 // Use whenever there is need to delete or replace the image or video resource (needs resource url)
 // const deleteResource = async(req, res) => {
 //     try {
@@ -210,7 +251,6 @@ const changeCurrentPassword = async (req, res) => {
 // }
 
 
-// updateAccountDetails
 // updateUserAvatar
 // updateUserCoverImage
 // forgotPassword
@@ -222,5 +262,6 @@ export {
     logout,
     getCurrentUser,
     refreshAccessToken,
-    changeCurrentPassword
+    changeCurrentPassword,
+    updateUserDetails
 }
