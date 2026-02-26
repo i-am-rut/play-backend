@@ -12,7 +12,7 @@ const userInteractionSchema = new Schema({
     },
     targetType: {
         type: String,
-        enum: ["Video", "Comment", "Tweet", "TweetReply", "Playlist"],
+        enum: ["Video", "Comment", "Point", "PointReply", "Playlist"],
         required: [true, "Target type is required"]
     },
     value: {

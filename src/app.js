@@ -26,8 +26,10 @@ app.use(cookieParser())
 
 // Route handlers
 import userRouter from "./routes/user.routes.js"
+import pointRouter from "./routes/point.route.js"
 
 app.use(`${API_BASE_VERSION}/user`, userRouter)
+app.use(`${API_BASE_VERSION}/points`, pointRouter)
 
 
 // Uploaded files cleanup middleware in cases of errors
